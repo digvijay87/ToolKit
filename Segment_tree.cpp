@@ -61,20 +61,28 @@ Total overlap ( query range matches with the segment node's range). For example,
 Class SegmentTree{
   public:
     int n;
+    int low;
+    int high;
+    int k;
     vector<int> tree;
+    
     SegmentTree(int size)
     {
       n = size;
-      int k = 0;
+      k = 0;
       k = (n & 1) ? (int)ceil(log2(n << 1)) : n;
       k = (k*2) - 1;
+      low = 0;
+      high = k-1;
       tree.resize(k, INT_MAX);
     }
-
+    
+    int treeLength() {return k;}
+    
     void ConstructSegTree(vector<int> arr, int low, int high, int pos, vector<int> &tree){
       if (low == high)
       {
-        tree[pos] = input[low];
+        tree[pos] = arr[low];
         return;
       }
       int m = low + (high - low)/2;
@@ -82,6 +90,28 @@ Class SegmentTree{
       ConstructSegTree(arr,m+1, high, pos*2+2, tree);
       tree[pos] = min(tree[pos*2+1], tree(pos*2+2));
     }
+
+    int MinQuery(int QL, int QR, vector<int> &tree, int pos, int low, int high)
+    {
+      if (QL > high || QR < low) return INT_MAX; // No overlap
+      if (QL <= low && QR >= high) return tree[pos]; // Total overlap
+
+      int m = low + (high - low)/2;
+      return min(MinQuery(QL, QR, tree, pos*2+1, low, m), MinQuery(QL, QR, tree, pos*2+2, m+1, high));
+    }
+
+    void updateQuery(vector<int> &tree, int pos, int val, int low, int high)
+    {
+      if (low > pos || high < pos) return;
+      if (low == high) tree[pos] = val;
+
+      int m = low + (high-low)/2;
+
+      updateQuery(tree, pos*2+1, val, low, m);
+      updateQuery(tree, pos*2+1, val, m+1, high);
+      tree[pos] = min(tree[pos*2+1], tree[pos*2+2]);
+    }
+    
 };
   
   
